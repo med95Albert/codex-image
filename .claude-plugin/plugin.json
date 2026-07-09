@@ -1,0 +1,10 @@
+{
+  "name": "codex-image",
+  "version": "1.0.0",
+  "description": "在 Claude Code 裡透過 Codex CLI 生圖 — 吃 ChatGPT 訂閱額度、不另付 API 費；STYLE.md 注入品牌風格，QR code／圖表用程式生成保證像素級正確。",
+  "author": { "name": "楊為傑", "url": "https://github.com/med95Albert" },
+  "homepage": "https://med95albert.github.io/codex-image/",
+  "repository": "https://github.com/med95Albert/codex-image",
+  "license": "MIT",
+  "keywords": ["image", "codex", "gpt-image", "image-generation", "qrcode", "brand-style", "subscription"]
+}

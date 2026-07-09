@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codex-image 懶人包 — 在 Claude Code 裡用 Codex 生圖</title>
+<style>
+  :root{
+    --paper:#F5F5F1; --ink:#20242B; --muted:#5B6270; --line:#DEDDD4;
+    --cinnabar:#A32E2A; --cinnabar-soft:#F3E4E2; --indigo:#2C4A6E; --indigo-soft:#E4EAF1;
+    --serif:"Songti TC","Noto Serif TC","LiSong Pro",Georgia,serif;
+    --sans:"PingFang TC","Noto Sans TC","Microsoft JhengHei",-apple-system,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.85;margin:0}
+  .wrap{max-width:740px;margin:0 auto;padding:56px 24px 72px;display:flex;flex-direction:column;gap:64px}
+  .eyebrow{font-size:12px;letter-spacing:.22em;color:var(--cinnabar);font-weight:500;margin:0 0 14px}
+  h1{font-family:var(--serif);font-size:clamp(30px,6vw,44px);line-height:1.3;font-weight:600;margin:0;text-wrap:balance}
+  h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0 0 6px;text-wrap:balance}
+  p{margin:0}
+  .sub{color:var(--muted);max-width:38em}
+  section{display:flex;flex-direction:column;gap:18px}
+  .hero{display:flex;flex-direction:column;gap:22px;border-bottom:1px solid var(--line);padding-bottom:44px}
+  .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:6px}
+  .party{border:1.5px solid;border-radius:6px;padding:14px 16px;background:#fff}
+  .party b{display:block;font-size:15px}
+  .party span{font-size:13px;color:var(--muted)}
+  .party.red{border-color:var(--cinnabar)} .party.red b{color:var(--cinnabar)}
+  .party.blue{border-color:var(--indigo)} .party.blue b{color:var(--indigo)}
+  .gate{font-family:var(--serif);font-size:13px;color:var(--muted);text-align:center;line-height:1.5}
+  .stamp{align-self:flex-end;transform:rotate(-5deg);border:3px double var(--cinnabar);color:var(--cinnabar);
+    border-radius:6px;padding:6px 14px;font-family:var(--serif);font-weight:600;letter-spacing:.12em;
+    font-size:15px;background:rgba(255,255,255,.6)}
+  .stamp small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:0;font-weight:400}
+  .cardgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.cardgrid{grid-template-columns:1fr}.vs{grid-template-columns:1fr;gap:8px}.gate{padding:2px 0}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+  .card h3{font-size:15.5px;font-weight:600;margin:0}
+  .card p{font-size:14px;color:var(--muted)}
+  .card .tag{font-size:11px;letter-spacing:.14em;color:var(--indigo);font-weight:500}
+  .steps{display:flex;flex-direction:column;gap:0;counter-reset:st}
+  .step{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:18px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:none}
+  .step::before{counter-increment:st;content:counter(st);font-family:var(--serif);font-size:22px;
+    color:var(--cinnabar);font-weight:600;text-align:center;line-height:1.2;padding-top:2px}
+  .step h3{font-size:16px;font-weight:600;margin:0 0 4px}
+  .step p{font-size:14.5px;color:var(--muted)}
+  .step .who{font-size:12px;letter-spacing:.1em;font-weight:500;margin-left:8px}
+  .who.red{color:var(--cinnabar)} .who.blue{color:var(--indigo)}
+  code{font-family:var(--mono);font-size:.88em;background:#fff;border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  .callrow{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px 20px;display:flex;flex-direction:column;gap:4px}
+  .callrow b{font-size:15px}
+  .callrow p{font-size:14px;color:var(--muted)}
+  .callrow .freq{font-size:11px;letter-spacing:.14em;color:var(--cinnabar);font-weight:500}
+  .quote{border-left:3px solid var(--cinnabar);padding:4px 0 4px 18px;font-size:15px;color:var(--ink);background:none}
+  .quote em{font-style:normal;color:var(--cinnabar);font-weight:600}
+  .panel{background:var(--indigo-soft);border-radius:8px;padding:22px 24px;display:flex;flex-direction:column;gap:10px}
+  .panel h2{font-size:19px}
+  .panel li{font-size:14.5px;color:#3A4456}
+  ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+  li{font-size:15px}
+  li b{font-weight:600}
+  .num{font-family:var(--serif);font-variant-numeric:tabular-nums;color:var(--cinnabar);font-weight:600}
+  footer{border-top:1px solid var(--line);padding-top:20px;font-size:13px;color:var(--muted);line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div>
+      <p class="eyebrow">AI 工作流懶人包</p>
+      <h1>讓 Claude 出腦、Codex 出手：<br>在 Claude Code 裡生圖，吃訂閱不吃 API</h1>
+    </div>
+    <p class="sub">Claude Code 讀你的專案脈絡＋品牌風格指南，組出精準的生圖指令；交給 <b>OpenAI Codex CLI</b> 實際畫圖。因為 Codex 用 ChatGPT 帳號登入，生圖消耗的是<b>訂閱方案的額度、不另外付 API 費</b>。</p>
+    <div class="vs">
+      <div class="party red"><b>Claude Code（大腦）</b><span>讀專案、注入 STYLE.md 品牌風格、組指令</span></div>
+      <div class="gate">gen_image.sh<br>↹ 組合與守門</div>
+      <div class="party blue"><b>Codex CLI（畫手）</b><span>gpt-image 生圖，或跑程式產出像素級正確的圖</span></div>
+    </div>
+    <div class="stamp">訂閱額度・NO API FEE<small>codex login = ChatGPT 帳號（別貼 API key）</small></div>
+  </div>
+
+  <section>
+    <p class="eyebrow">WHY・為什麼不直接在 ChatGPT 生圖</p>
+    <h2>差在「脈絡」與「正確性」</h2>
+    <ul>
+      <li><b>風格一致</b>——你在專案根目錄放一份 <code>STYLE.md</code>（品牌色、字體、插畫風格、禁用元素），每次生圖自動注入。ChatGPT 網頁每次都要重新描述，還是會飄。</li>
+      <li><b>專案脈絡</b>——Claude Code 讀得到你的資料夾、文件、AGENTS.md，下給 Codex 的 prompt 比你手打的更精準。</li>
+      <li><b>像素級正確</b>——QR code、圖表、精確中文排版這類東西，指令強制 Codex「<b>用程式生成</b>」（qrcode／matplotlib），不是 AI 繪圖近似。差一個像素 QR code 就連不上，這條路保證能掃、不亂碼。</li>
+    </ul>
+    <p class="quote">AI 繪圖畫的 QR code 是「長得像 QR code 的圖」；程式生成的 QR code 是<em>真的連得上你網址的 QR code</em>。</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">CALL・怎麼呼叫</p>
+    <h2>一句話就生圖</h2>
+    <div class="callrow">
+      <span class="freq">主要路徑・自動觸發</span>
+      <b>「幫我生一張…的圖」</b>
+      <p>裝好後在 Claude Code 直接說：「做個示意圖」「生個 QR code」「出張衛教圖」——skill 自動接手，載入風格、呼叫 Codex、存檔回報。</p>
+    </div>
+    <div class="callrow">
+      <span class="freq">手動路徑</span>
+      <b><code>gen_image.sh "圖片描述" output/圖.png "風格補充"</code></b>
+      <p>在終端機直接跑腳本，一樣走訂閱額度。</p>
+    </div>
+    <div class="callrow">
+      <span class="freq">內建煞車</span>
+      <b>大量批次會被擋下</b>
+      <p>一次要生數十張以上？skill 會主動擋下並建議改用按量付費 API——因為訂閱額度會很快撞上限，該花的錢花在對的地方。</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">RUN・怎麼執行</p>
+    <h2>一次生圖的完整流程</h2>
+    <div class="steps">
+      <div class="step"><div>
+        <h3>組指令<span class="who red">Claude</span></h3>
+        <p>把你的描述＋專案根目錄的 <code>STYLE.md</code>（若有）＋本次風格補充，組成一份完整的生圖指令。</p>
+      </div></div>
+      <div class="step"><div>
+        <h3>守門<span class="who">gen_image.sh</span></h3>
+        <p>偵測到 <code>OPENAI_API_KEY</code>／<code>CODEX_API_KEY</code> 環境變數就直接擋下——它們存在會讓 Codex 改走按量付費 API，不是訂閱額度。確認登入狀態後才放行。</p>
+      </div></div>
+      <div class="step"><div>
+        <h3>生圖<span class="who blue">Codex</span></h3>
+        <p>一般插畫用內建 gpt-image 工具；QR code、圖表、精確排版則<b>實際跑程式</b>（qrcode／matplotlib／Pillow）產出，確保像素級正確。</p>
+      </div></div>
+      <div class="step"><div>
+        <h3>存檔回報<span class="who">gen_image.sh</span></h3>
+        <p>PNG 存到你指定的路徑，腳本驗證檔案確實存在才回報完成；找不到就明說，不假裝成功。</p>
+      </div></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">COST・省錢原理</p>
+    <h2>同一份訂閱，兩個池子</h2>
+    <ul>
+      <li><b>吃的是 agentic 用量</b>——Codex CLI 生圖消耗訂閱方案的 agentic 額度，跟 ChatGPT 網頁版「每日幾張圖」是<b>不同的池子</b>，也完全不經過按量付費 API。</li>
+      <li><b>生圖比文字燒得快</b>——約 <span class="num">3～5</span> 倍。偶爾生一兩張幾乎無感；連續大量就會見底。</li>
+      <li><b>決策規則</b>——少量、要精準／一致 → 走這條（訂閱）。大量批次（數十張以上）→ 改用 OpenAI 按量付費 API。</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">GAIN・好處</p>
+    <h2>你得到什麼</h2>
+    <div class="cardgrid">
+      <div class="card"><span class="tag">成本</span><h3>零額外 API 費</h3><p>已經在付 ChatGPT 訂閱？生圖就包含在裡面。不用再開一個 OpenAI API 帳單。</p></div>
+      <div class="card"><span class="tag">品牌</span><h3>風格自動一致</h3><p>STYLE.md 寫一次，之後每張圖自動套用品牌色、插畫風格、禁用元素——不用每次重新描述。</p></div>
+      <div class="card"><span class="tag">正確性</span><h3>QR code 真的能掃</h3><p>程式化元素用程式生成，不是 AI 近似。QR code 連得上、圖表數據對、中文不亂碼。</p></div>
+      <div class="card"><span class="tag">工作流</span><h3>不用切換視窗</h3><p>寫文案、做網頁、生配圖，全部在同一個 Claude Code session 裡完成，圖直接存進專案資料夾。</p></div>
+      <div class="card"><span class="tag">防呆</span><h3>不會誤走付費 API</h3><p>腳本偵測到 API key 環境變數就擋下並教你怎麼處理——省錢路線由程式守門，不靠記性。</p></div>
+      <div class="card"><span class="tag">誠實</span><h3>該花錢時直說</h3><p>大批次需求會被 skill 主動擋下、改建議按量付費 API——工具知道自己的邊界。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">INSTALL・怎麼安裝</p>
+    <h2>一句話就裝好</h2>
+    <p class="sub">打開 Claude Code，把下面這句話貼給它——clone、放對位置、環境檢查，全部由 Claude 代勞：</p>
+    <div class="quote" style="font-size:14px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--cinnabar);border-radius:6px;padding:14px 18px">幫我把 github.com/med95Albert/codex-image 這個技能裝到 ~/.claude/skills/codex-image，然後執行裡面的 install.sh 完成安裝檢查</div>
+    <p class="sub" style="font-size:14px">裝完重開一個 Claude Code session 即生效。偏好原生外掛的話：<code>/plugin marketplace add med95Albert/codex-image</code> → <code>/plugin install codex-image@codex-image</code>。前置需求：Claude Code＋Codex CLI（<code>brew install codex</code>）＋ChatGPT Plus 以上訂閱（<code>codex login</code> 用 ChatGPT 帳號，<b>別貼 API key</b>）。原始碼與完整說明在 <a href="https://github.com/med95Albert/codex-image">GitHub</a>。</p>
+  </section>
+
+  <section class="panel">
+    <h2>誠實的三個限制</h2>
+    <ul>
+      <li><b>要養 ChatGPT 訂閱</b>——Plus 以上且 Codex CLI 已登入；生圖跟你其他 Codex 任務搶同一份 agentic 額度。</li>
+      <li><b>AI 繪圖仍有隨機性</b>——STYLE.md 大幅收斂風格，但 gpt-image 不保證每次一模一樣；只有程式化元素（QR code／圖表）有像素級保證。</li>
+      <li><b>不適合大批次</b>——數十張以上會撞訂閱上限、要一直等；那種量請改按量付費 API，skill 也會這樣勸你。</li>
+    </ul>
+  </section>
+
+  <footer>
+    運行環境：Claude Code × OpenAI Codex CLI。2026 年 7 月。<br>
+    同作者：<a href="https://med95albert.github.io/cross-model-review/">cross-model-review — 跨模型互審閘門</a>
+  </footer>
+
+</div>
+</body>
+</html>
