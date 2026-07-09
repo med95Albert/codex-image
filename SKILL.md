@@ -1,9 +1,9 @@
 ---
 name: codex-image
-description: "在 Claude Code 裡透過 Codex CLI 生圖，吃 ChatGPT 訂閱額度、不另外付 API 費。適合少量、需要高精準度／一致風格的圖（含程式化生成的 QR code、圖表、精確中文排版）。Use whenever the user wants Claude Code to generate or edit an image, make a picture/diagram/QR code, or produce visuals consistent with their brand style. Trigger on：生圖, 產生圖片, 做一張圖, 幫我生個圖, 出張圖, Codex 生圖, gpt-image, 生 QR code, 做示意圖, generate image, make an image。也在使用者想建立或更新圖片風格指南時觸發：建 STYLE.md, 幫我定義圖片風格, 風格指南。大量批次生圖(數十張以上)請改用按量付費 API，否則會撞訂閱用量上限。"
+description: "在 Claude Code 裡透過 Codex CLI 生圖，吃 ChatGPT 訂閱額度、不另外付 API 費。適合少量、需要高精準度／一致風格的圖（含程式化生成的 QR code、圖表、精確中文排版）。Use whenever the user wants Claude Code to generate or edit an image, make a picture/diagram/QR code, or produce visuals consistent with their brand style. Trigger on：生圖, 產生圖片, 做一張圖, 幫我生個圖, 出張圖, Codex 生圖, gpt-image, 生 QR code, 做示意圖, generate image, make an image。也在使用者想建立、切換或管理圖片風格時觸發：建 STYLE.md, 幫我定義圖片風格, 風格指南, 用○○風格生, 換個風格, 新增一種風格, 列出我的風格, 把○○設為預設風格。大量批次生圖(數十張以上)請改用按量付費 API，否則會撞訂閱用量上限。"
 ---
 
-# codex-image ・ 用 Codex CLI 生圖（吃訂閱額度）v1.1
+# codex-image ・ 用 Codex CLI 生圖（吃訂閱額度）v1.2
 
 **做什麼**：在 Claude Code session 裡，把生圖任務交給 Codex CLI 的內建圖片工具(gpt-image-2)。
 因為用 ChatGPT 帳號登入，生圖消耗訂閱方案的 agentic 用量、**不另外收 API 費**。
@@ -25,8 +25,15 @@ codex-image/
 └── STYLE.md            ← 品牌風格範本（複製到你的專案根目錄後填寫）
 ```
 
-> `STYLE.md` 是「範本」。實際生圖時，腳本讀的是**目前工作目錄**裡的 `STYLE.md`，
-> 所以請把它複製到你的專案根目錄並填上你的品牌設定。
+> `STYLE.md` 是「範本」。實際生圖時，腳本讀的是**目前工作目錄**裡的風格檔，佈局如下：
+
+```
+使用者的專案/
+├── STYLE.md            ← 預設風格兼品牌基底（沒指定風格就用它；一律注入）
+└── styles/             ← 具名風格變體（可選），檔名即風格名
+    ├── 水彩手繪.md
+    └── 極簡線條.md
+```
 
 ---
 
@@ -45,12 +52,30 @@ codex-image/
 
 ---
 
-## 生圖前：風格檢查（沒有 STYLE.md 時的訪談流程）
+## 生圖前：風格決定流程
 
-每次生圖前，先看**目前工作目錄**有沒有 `STYLE.md`：
+### 第一步：選用哪個風格？
 
-- **有** → 直接用，照常生圖。
-- **沒有** → 先別急著生圖。用 AskUserQuestion（或直接問）讓使用者選一條路：
+每次生圖前，先看**目前工作目錄**的風格檔狀態，決定走哪條路：
+
+| 情境 | 動作 |
+|---|---|
+| 使用者**點名了風格**（「用水彩風生…」「換極簡風」） | 對 `styles/` 檔名做匹配 → `gen_image.sh --style <名稱> …`。點名模糊或不存在時，列出現有風格（`ls styles/*.md`）讓使用者挑 |
+| 沒點名，`STYLE.md` 存在 | 直接用預設，照常生圖，**不要多問** |
+| 沒點名，`STYLE.md` 不存在 | 走下面的「風格建立訪談」 |
+
+**注入規則**（腳本已內建，你只要選對參數）：`STYLE.md` 是品牌基底，永遠注入；`--style` 指定的變體疊加在基底上，衝突處以變體為準——所以品牌色、禁用元素這些恆定項只需寫在 `STYLE.md` 一次，變體檔只寫「差異」（畫風、線條、質感）。
+
+### 風格管理指令（自然語言就好）
+
+- **「列出我的風格」**→ 報 `STYLE.md`（預設）＋ `styles/` 底下所有檔名。
+- **「新增一種風格」「幫我建一個○○風」**→ 走建立訪談，問清楚後存成 `styles/<名稱>.md`（只寫與基底的差異）。
+- **「把○○設為預設」**→ 兩步驟：① 先把現在的 `STYLE.md` 備份成 `styles/<舊風格名>.md`（名稱請使用者確認或給建議）；② 把該變體的內容合併進 `STYLE.md`（品牌恆定項保留，畫風條目覆蓋）。做完刪掉已合併的變體檔，避免同一風格兩份漂移。
+- **「刪掉○○風格」**→ 刪 `styles/<名稱>.md` 前先跟使用者確認。
+
+### 風格建立訪談（STYLE.md 不存在，或使用者要新風格時）
+
+先用 AskUserQuestion（或直接問）讓使用者選一條路。若是建「具名變體」（`STYLE.md` 已存在），先問風格名字，且內容只寫與基底的差異：
 
 ### 選項 1：給我參考素材，AI 幫你總結成 STYLE.md（推薦）
 
@@ -63,15 +88,15 @@ codex-image/
 | **文字描述**（「溫暖、手繪感、莫蘭迪色」） | 直接展開成可操作的風格條目 |
 
 分析後按 `STYLE.md` 範本結構（品牌色／字體／插畫風格／構圖偏好／禁用元素）寫出**草稿**，
-先給使用者過目確認，再存到專案根目錄。要點：
+先給使用者過目確認再存檔（預設風格 → `STYLE.md`；具名變體 → `styles/<名稱>.md`，只寫差異）。要點：
 
 - 顏色寫**具體 hex 色碼**（從網站或圖片實際取色），不要只寫「藍色」。
 - 每個欄位一定要可操作——寫「細線條、圓角、無粗黑邊」，不寫「有質感」。
 - 「禁用元素」主動幫使用者想：浮水印、無意義文字、雜亂背景是常見默認項。
 
-### 選項 2：從預設風格挑一種
+### 選項 2：從內建風格挑一種
 
-給 3～4 個常用預設讓使用者挑，選了就用該預設寫一份精簡 STYLE.md：
+給 3～4 個常用選項讓使用者挑，選了就寫一份精簡風格檔（存哪裡同上）：
 
 - **扁平插畫**（flat illustration）：色塊、無漸層、幾何簡化——衛教圖、示意圖首選
 - **水彩手繪**：柔和暈染、手繪線條——溫暖親子感
@@ -82,8 +107,8 @@ codex-image/
 
 不建 STYLE.md，本次直接用使用者的描述生圖。之後想建，隨時說「幫我建 STYLE.md」。
 
-> 建好的 `STYLE.md` 屬於**該專案**（存在工作目錄根部），之後每次生圖自動注入。
-> 換專案要重建，或把現成的複製過去再微調。
+> 建好的風格檔屬於**該專案**（`STYLE.md` 與 `styles/` 都在工作目錄根部），之後每次生圖自動注入。
+> 換專案要重建，或把現成的檔案複製過去再微調；單一變體也可以只複製那一個 `.md`。
 
 ---
 
@@ -122,19 +147,23 @@ codex-image/
 ## 用法
 
 ```bash
-# 基本：描述 + 輸出路徑
+# 基本：描述 + 輸出路徑（用預設風格 STYLE.md）
 scripts/gen_image.sh "復健中心溫暖明亮的等候區，扁平插畫風" output/lobby.png
+
+# 指定具名風格變體（styles/水彩手繪.md 疊加在 STYLE.md 基底上）
+scripts/gen_image.sh --style 水彩手繪 "下肢肌力訓練示意圖" output/leg.png
 
 # 加風格補充
 scripts/gen_image.sh "下肢肌力訓練示意圖" output/leg.png "留白多一點、用品牌主色"
 ```
 
-腳本會：載入工作目錄的 `STYLE.md`(若有) → 組好指令 → 跑 `codex exec --sandbox workspace-write --skip-git-repo-check` 生圖並寫檔 → 回報存檔路徑。（加 `--skip-git-repo-check` 是因為實測：不在 git 專案裡跑時，Codex 預設會卡住，加了才能在任何資料夾運作。）
+腳本會：載入工作目錄的 `STYLE.md`(若有)＋指定的變體(若有) → 組好指令 → 跑 `codex exec --sandbox workspace-write --skip-git-repo-check` 生圖並寫檔 → 回報存檔路徑。（加 `--skip-git-repo-check` 是因為實測：不在 git 專案裡跑時，Codex 預設會卡住，加了才能在任何資料夾運作。）指定了不存在的風格名時，腳本會列出現有風格再退出，不會悶著頭生。
 
 ### 讓風格穩定一致（強烈建議）
 
 - 在專案根目錄放一個 **`STYLE.md`**：寫品牌色、字體、插畫風格、構圖偏好、禁用元素。腳本會自動把它注入每次生圖指令，這就是「比直接在 ChatGPT 生圖更貼合你喜好」的來源。
-- 不會寫？不用自己寫——走上面的「風格檢查訪談流程」，丟網址／圖片／文字描述給 AI 總結即可。
+- 不會寫？不用自己寫——走上面的「風格建立訪談」，丟網址／圖片／文字描述給 AI 總結即可。
+- **有多種風格需求**：`STYLE.md` 放品牌恆定項＋最常用的畫風當預設，其他畫風存 `styles/<名稱>.md`（只寫差異），生圖時點名即可切換——「用水彩風生一張…」。
 - 也可放 **`AGENTS.md`**（Codex 的專案記憶檔，相當於 Claude 的 CLAUDE.md）。Codex 每次都會讀，用來理解整個專案脈絡。
 
 ---

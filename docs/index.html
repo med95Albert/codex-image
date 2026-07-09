@@ -103,7 +103,12 @@
     <div class="callrow">
       <span class="freq">沒有風格指南？AI 幫你建</span>
       <b>丟網址、圖片或一句描述，AI 總結成 STYLE.md</b>
-      <p>第一次生圖若專案還沒有 STYLE.md，Claude 會先問你：給參考素材（品牌官網網址、logo 圖檔、或「溫暖手繪感」這類描述）讓 AI 分析取色、寫出風格指南草稿給你確認；或從預設風格（扁平插畫／水彩／極簡線條／攝影感）挑一種；趕時間也可以先跳過。</p>
+      <p>第一次生圖若專案還沒有 STYLE.md，Claude 會先問你：給參考素材（品牌官網網址、logo 圖檔、或「溫暖手繪感」這類描述）讓 AI 分析取色、寫出風格指南草稿給你確認；或從內建風格（扁平插畫／水彩／極簡線條／攝影感）挑一種；趕時間也可以先跳過。</p>
+    </div>
+    <div class="callrow">
+      <span class="freq">多種風格？點名就切換</span>
+      <b>「用水彩風生一張…」——一個專案養多套畫風</b>
+      <p>STYLE.md 放品牌恆定項（色碼、禁用元素）兼預設畫風；其他畫風存成 <code>styles/水彩手繪.md</code> 這樣的具名變體，只寫差異。生圖時點名即切換——變體疊加在品牌基底上，衝突處以變體為準，品牌色永遠生效。「列出我的風格」「把水彩設為預設」也都是一句話的事。</p>
     </div>
     <div class="callrow">
       <span class="freq">手動路徑</span>
@@ -155,7 +160,7 @@
     <h2>你得到什麼</h2>
     <div class="cardgrid">
       <div class="card"><span class="tag">成本</span><h3>零額外 API 費</h3><p>已經在付 ChatGPT 訂閱？生圖就包含在裡面。不用再開一個 OpenAI API 帳單。</p></div>
-      <div class="card"><span class="tag">品牌</span><h3>風格自動一致</h3><p>STYLE.md 寫一次，之後每張圖自動套用品牌色、插畫風格、禁用元素——不用每次重新描述。</p></div>
+      <div class="card"><span class="tag">品牌</span><h3>風格自動一致，多風格可切換</h3><p>STYLE.md 寫一次，每張圖自動套用品牌色與禁用元素；多套畫風存成具名變體，點名即切換，品牌基底永遠生效。</p></div>
       <div class="card"><span class="tag">正確性</span><h3>QR code 真的能掃</h3><p>程式化元素用程式生成，不是 AI 近似。QR code 連得上、圖表數據對、中文不亂碼。</p></div>
       <div class="card"><span class="tag">工作流</span><h3>不用切換視窗</h3><p>寫文案、做網頁、生配圖，全部在同一個 Claude Code session 裡完成，圖直接存進專案資料夾。</p></div>
       <div class="card"><span class="tag">防呆</span><h3>不會誤走付費 API</h3><p>腳本偵測到 API key 環境變數就擋下並教你怎麼處理——省錢路線由程式守門，不靠記性。</p></div>

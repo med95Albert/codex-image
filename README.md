@@ -50,8 +50,11 @@ bash ~/.claude/skills/codex-image/install.sh
 裝好後在 Claude Code 直接說「幫我生一張…的圖」「做個示意圖」「生個 QR code」就會自動觸發。也可手動：
 
 ```bash
-# 基本：描述 + 輸出路徑
+# 基本：描述 + 輸出路徑（用預設風格）
 bash ~/.claude/skills/codex-image/scripts/gen_image.sh "復健中心溫暖明亮的等候區，扁平插畫風" output/lobby.png
+
+# 指定具名風格變體
+bash ~/.claude/skills/codex-image/scripts/gen_image.sh --style 水彩手繪 "下肢肌力訓練示意圖" output/leg.png
 
 # 加風格補充
 bash ~/.claude/skills/codex-image/scripts/gen_image.sh "下肢肌力訓練示意圖" output/leg.png "留白多一點、用品牌主色"
@@ -64,8 +67,22 @@ bash ~/.claude/skills/codex-image/scripts/gen_image.sh "下肢肌力訓練示意
 **沒有 STYLE.md？不用自己寫。** 第一次生圖時 Claude 會先問你要怎麼決定風格：
 
 1. **給參考素材，AI 幫你總結**（推薦）——丟網址（品牌官網、喜歡的網站）、圖片檔（logo、過去的設計）、或文字描述（「溫暖、手繪感、莫蘭迪色」），AI 分析後寫出 STYLE.md 草稿（含具體 hex 色碼），你確認後存檔。
-2. **從預設風格挑一種**——扁平插畫／水彩手繪／極簡線條／寫實攝影感。
+2. **從內建風格挑一種**——扁平插畫／水彩手繪／極簡線條／寫實攝影感。
 3. **這次先跳過**——直接用描述生圖，之後想建隨時說「幫我建 STYLE.md」。
+
+### 多種風格需求？具名變體隨時切換
+
+一個專案可以養多套畫風：`STYLE.md` 放品牌恆定項（色碼、logo 規範、禁用元素）＋最常用的畫風當**預設**；其他畫風存 `styles/<名稱>.md`，**只寫與基底的差異**。
+
+```
+你的專案/
+├── STYLE.md            ← 預設風格兼品牌基底（沒指定就用它）
+└── styles/
+    ├── 水彩手繪.md      ← 具名變體，檔名即風格名
+    └── 極簡線條.md
+```
+
+生圖時自然語言點名就切換：「**用水彩風**生一張…」——變體疊加在基底上注入，衝突處以變體為準，品牌色與禁用元素永遠生效。管理也是一句話：「列出我的風格」「新增一種風格」「把水彩設為預設」「刪掉極簡風」。
 
 ### QR code 等程式化元素
 
