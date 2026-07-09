@@ -120,7 +120,14 @@ ${STYLE_BLOCK:-（此專案未提供 STYLE.md）}
 2. 程式化元素（QR code、圖表、需要像素級正確或精確中文排版）：務必「用程式生成」
    （例如 Python 的 qrcode / matplotlib / Pillow），不要用 AI 繪圖近似，以確保 QR code 可掃、
    數據正確、中文不亂碼。
-3. 嚴格存檔到上面的【輸出路徑】，完成後在最後一行輸出實際存檔的檔案路徑。"
+3. QR code 鐵律（違反即算失敗）：
+   a. 只能用「標準函式庫／工具」編碼——Python qrcode / segno、qrencode CLI，
+      或 macOS 內建 CoreImage CIQRCodeGenerator（用 swift 腳本呼叫，零安裝）。
+      嚴禁自己手寫 QR 編碼演算法——手寫版可能自洽但不合規，真實掃描器讀不了。
+   b. 驗證必須用「與編碼器不同來源」的獨立解碼器（macOS Vision framework、zbar、
+      OpenCV QRCodeDetector）。自己寫的解碼器解自己編的碼，不算驗證。
+   c. 若環境中沒有任何標準編碼器、也裝不了：直接回報失敗與原因，不要硬做。
+4. 嚴格存檔到上面的【輸出路徑】，完成後在最後一行輸出實際存檔的檔案路徑。"
 
 # ---- 6. 執行 ----
 echo "🎨 生圖中… → ${OUT_PATH}"

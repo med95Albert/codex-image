@@ -7,7 +7,7 @@
       "name": "codex-image",
       "source": ".",
       "description": "在 Claude Code 裡透過 Codex CLI 生圖 — 吃 ChatGPT 訂閱額度、不另付 API 費。",
-      "version": "1.2.0"
+      "version": "1.2.1"
     }
   ]
 }

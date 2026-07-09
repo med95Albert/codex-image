@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1.2.1（2026-07-09）
+
+QR code 鐵律——事故驅動修補。
+
+實測事故：Codex 沙箱內沒有 `qrcode` 套件、連不上 PyPI，於是**手寫純 Python QR 編碼器**並「自我驗證通過」；但 Apple Vision 完全解不出該圖（手寫編碼器自洽但不合規，真實掃描器讀不了）。修補：
+
+- `scripts/gen_image.sh` 指令新增 QR 鐵律：①只准標準編碼器（Python `qrcode`/`segno`、`qrencode`、macOS CoreImage `CIQRCodeGenerator`），嚴禁手寫編碼演算法；②驗證必須用與編碼器不同來源的獨立解碼器（Vision／zbar／OpenCV），自編自解不算驗證；③沒有標準編碼器且裝不了→誠實回報失敗，不硬做。
+- `SKILL.md`：記錄事故與鐵律；建議 Claude 端收到 QR 成品後獨立複驗（macOS 上 CoreImage 生成＋Vision 解碼皆內建、零安裝）。
+
 ## v1.2.0（2026-07-09）
 
 多風格支援——一個專案可養多套畫風，點名即切換。
