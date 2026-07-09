@@ -47,6 +47,9 @@ fi
 STYLE_BLOCK=""
 if [[ -f "STYLE.md" ]]; then
   STYLE_BLOCK="$(cat STYLE.md)"
+else
+  echo "ℹ️  未找到 STYLE.md——本次直接用描述生圖。" >&2
+  echo "    想要品牌風格一致，可請 Claude：「幫我建 STYLE.md」（給它網址／圖片／文字描述，AI 幫你總結）" >&2
 fi
 
 # ---- 4. 準備輸出資料夾 ----
